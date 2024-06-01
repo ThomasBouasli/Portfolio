@@ -1,0 +1,19 @@
+---
+
+type Props = {
+    title: string
+}
+
+const { title } = Astro.props
+---
+
+<header id="header" class="flex items-center justify-center bg-zinc-950 h-20 border-b border-zinc-800">
+    <div class="container flex items-center justify-between text-zinc-200">
+        <a href="/" class="text-2xl font-bold">{ title }</a>
+        <nav class="space-x-2">
+            <a href="work">~/work</a>
+            <a href="personal">~/personal</a>
+            <a href="about">~/about</a>
+        </nav>
+    </div>
+</header>
