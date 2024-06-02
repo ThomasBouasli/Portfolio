@@ -1,7 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content'
 
-type Props = CollectionEntry<'work'>['data']
+type Props = CollectionEntry<'work'>['data'] | CollectionEntry<'personal'>['data']
 const { title , description, tags } = Astro.props
 ---
 

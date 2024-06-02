@@ -10,6 +10,16 @@ const work = defineCollection({
   }),
 });
 
+const personal = defineCollection({
+  type: "content",
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    tags: z.array(z.string()),
+  }),
+});
+
 export const collections = {
   work,
+  personal,
 };
