@@ -1,0 +1,54 @@
+---
+const {frontmatter} = Astro.props;
+---
+
+
+<html>
+    <style is:global>
+        html{
+            @apply scroll-smooth;
+        }
+    
+        body{
+            @apply text-zinc-100 bg-zinc-900 container mx-auto px-20 py-10;
+        }
+    
+        body::-webkit-scrollbar {
+            @apply w-3;
+        }
+        
+        body::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        body::-webkit-scrollbar-thumb {
+            @apply bg-zinc-800;
+            @apply outline-zinc-800;
+            outline: 1px solid;
+        }
+    
+        *::selection {
+            @apply bg-zinc-800;
+            @apply text-zinc-100;
+        }
+    
+        h1{
+            @apply my-8 text-4xl font-extrabold;
+        }
+    
+        h2{
+            @apply my-8 text-3xl font-bold;
+        }
+    
+        h3{
+            @apply my-8 text-2xl font-bold;
+        }
+
+        p{
+            @apply my-4;
+        }
+    </style>
+    
+  <h1>{frontmatter.title}</h1>
+  <slot /> 
+</html>

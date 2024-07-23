@@ -1,0 +1,27 @@
+---
+const { slug } = Astro.params;
+import { getEntryBySlug } from 'astro:content';
+import BaseLayout from '../base-layout.astro';
+
+const project = await getEntryBySlug('work', slug!);
+
+if (!project) {
+    return {
+        headers: {
+            status: 404,
+        },
+    };
+}
+
+const {Content} = await project.render();
+---
+
+<BaseLayout>
+    <div class="space-y-20">
+        {project ? (
+            <Content />
+        ) : (
+            <p>Project not found</p>
+        )}
+    </div>
+</BaseLayout>

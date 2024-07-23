@@ -1,0 +1,51 @@
+---
+layout: '../layout/markdown.astro'
+title: 'Micro-serviços'
+---
+import Mermaid from '../components/Mermaid.jsx';
+
+
+## Introdução
+
+Vamos imaginar um sistema de vendas de ingresso para shows. Podemos pensar em quebrar esse problema em partes menores, como:
+
+
+- Sistema de catalogo de shows
+- Sistema de vendas
+- Sistema de pagamento
+- Sistema de estoque
+
+Um fluxo normal desse sistema seria:
+
+<Mermaid client:load text={`
+    sequenceDiagram
+        participant A as Admin
+        participant U as Cliente
+        participant C as Catalogo 
+        participant V as Vendas
+        participant E as Estoque
+        A->>C:Criar Show
+        par
+            C--)+V:Show Criado
+            Note right of V: Criar Produto
+            deactivate V
+        and
+            C--)+E:Show Criado
+            Note right of E: Criar Item
+            deactivate E
+        end
+        A->>E:Adicionar 10 ao Estoque
+        A->>V:Definir preco para 10 reais
+        U->>V: Comprar 1 Ingresso
+        V->>+E: Pedido Criado
+        Note right of E: Reservar 1 Item
+        V->>E: Pedido Concluido
+        Note right of E: Entregar item reservado
+        deactivate E
+`} />
+
+## Microsserviços
+
+Microsserviços são uma abordagem arquitetural que consiste em dividir uma aplicação em partes menores, que são independentes e podem ser implantadas separadamente. Cada microsserviço é responsável por uma parte do sistema, por uma parte do *domínio do problema*. Isso permite que cada microsserviço seja desenvolvido, implantado e escalado de forma independente, por *times diferentes*, em *linguagens diferentes* e *ambientes diferentes*.
+
+Isso pode facilitar o desenvolvimento, quando times diferentes cuidam de regras de negocio que não se sobrepõem. Assim mantendo o time focado em uma única responsabilidade, facilitando a manutenção e evolução do sistema.
