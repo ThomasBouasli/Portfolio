@@ -1,0 +1,157 @@
+---
+title: "Mono repositórios"
+description: "Criando incentivos para reutilização de código e padronizações a nível de projeto"
+tags: ["monorepo"]
+---
+
+import Mermaid from "../../components/mermaid.tsx"
+
+# Mono repositórios
+
+## O que é um repositório?
+
+Geralmente quando discutimos de repositórios, nos referimos a repositórios git. Nao vou entrar em detalhes sobre o que é um repositório git, mas basicamente é um local onde você armazena seu código fonte com um histórico de alterações.
+
+Muitos projetos optam por ter um repositório por aplicação ou por pacote, o que pode funcionar muito bem para uma aplicação única, como e o caso de um monólito. Mas quando a aplicação e apenas parte de um sistema maior, manter todas essas partes separadas pode causar baixa coesão, duplicação de código e problemas para versionar o sistema como um todo.
+
+## O que é um mono repositório?
+
+O mono repositório é uma abordagem onde você mantém todo o código fonte de um sistema em um único repositório git. Isso pode incluir várias aplicações, bibliotecas, pacotes, etc. A ideia é que você possa versionar o sistema como um todo, garantindo que todas as partes funcionem bem juntas.
+
+## Ferramentas
+
+- pnpm
+- typescript project reference
+- changesets
+- nx
+
+## Arquitetura
+
+Antes de pensar nas ferramentas que vamos usar, precisamos entender que problema queremos resolver. Geralmente monorepositorios sao mais uteis para microservicos ou para pacotes, que eu explico detalhadamente nesse [blog](/).
+
+Vamos usar como exemplo um projeto de gestao de tarefas. Sera um sistema simples com times de pessoas com tarefas compartilhadas.
+
+<Mermaid client:load text={`
+  flowchart TD
+      A[Auth]
+      E[Teams]
+      T[Tasks]
+`} />
+
+Com isso teriamos uma estrutura de pastas semelhante a essa:
+
+```bash
+├── apps
+│   ├── www
+│   ├── auth
+│   ├── tasks
+│   └── teams
+└── packages
+    └── design-system
+```
+
+### Auth
+
+Essa aplicacao e responsavel pelo controle de acesso dos usuarios. Podemos pensar em:
+
+- [ ] Criacao de usuario
+- [ ] Login
+- [ ] Regras de Acesso
+
+
+### Teams
+
+Essa aplicacao e responsavel pela gestao dos times, seriam acoes como:
+
+- [ ] Criacao de times
+- [ ] Convidar novos usuarios
+
+### Tasks
+
+Essa aplicacao e nosso dominio principal, seria onde teriamos:
+
+- [ ] Criacao de tarefas
+- [ ] Atribuicao de Tarefas para usuarios
+- [ ] Marcacao de tarefa concluida
+- [ ] Marcacao de tarefa cancelada
+
+## Fluxo
+
+Esse seria um fluxo possivel de acoes nesse sistema.
+
+<Mermaid client:load text={`
+sequenceDiagram
+    participant C as Cliente
+    participant A as Auth
+    participant E as Teams
+    participant T as Tasks
+    C->>A: Criar Usuario
+    C->>E: Criar Time
+    activate E
+    E--)A: Time Criado
+    deactivate E
+    C->>E: Convidar Usuario
+    activate E
+    E->>A: O usuario tem autorizacao?
+    A->>E: Sim
+    E--)A: Usuario Convidado
+    deactivate E
+    C->>T:Criar Tarefa
+    activate T
+    T->>A: O usuario tem autorizacao?
+    A->>T: Sim
+    deactivate T
+`}/>
+
+## Decisoes Tecnicas
+
+Pensando nesse sistema, vamos conciderar algumas coisas:
+
+Vamos supor que queremos que terceiros possam _embedar_ o nossos componentes em seus sites, entao precisamos criar um pacote com componentes que esses servicos possam usar. Vamos colocar esses componentes numa pasta `components`.
+
+Agora pensando na comunicacao entre os servicos, vemos que existem mensagens entre eles, algumas sincronas, algumas asincronas, mas de qualquer forma, elas possuem um `schema` que varios projetos dependem.
+
+Nesse exemplo vamos ser agnosticos a protocolos de comunicacao, a implementacao seria diferente para *GRpc* e *GraphQL* devido suas definicoes de schemas serem diferentes, entao vamos pensar apenas em tipos typescript. Esses podem ser compartilhados entre os projetos, entao vamos criar mais uma pasta, uma chamada `types` (apenas por simplicidade, sempre use nomes mais descritivos).
+
+Com isso, nossa estrutura passa a ser a seguinte:
+
+```bash
+├── apps
+│   ├── www
+│   ├── auth
+│   ├── tasks
+│   └── teams
+└── packages
+     ├── design-system
+     └── componets
+```
+
+## Escolha de ferramentas
+
+Esse exemplo que foi criado vai utilizar todas as ferramentas que listamos no capitulo [Ferramentas](#Ferramentas), vamos entender onde cada uma se encaixa.
+
+### Pnpm
+
+Esse projeto e inteiramente feito javascript (ou typescript), e sabemos muito bem das dores de ter que instalar os `node_modules`, o tempo e o espaco que ele ocupa, para isso vamos usar o *pnpm*.
+
+Ele nao e nada mais que um gerenciado de pacote como o *npm* que em vez de instalar a mesma dependencia varias vezes, ele cria uma _store_ onde guarda a depedencia uma unica vez e cria *links simbolicos* na pasta `node_modules` ( parecidos com atalhos no windows ). Claro, nao e a unica diferenca, mas esse nao e o ponto desse artigo.
+
+Outra funcionalidade que vamos usar sao os workspaces, e uma forma de gerenciar dependecias entre os projetos, entao podemos criar pacotes ( vamos pensar em pacotes como bibliotecas no `npm` ) e utiliza-los nos projetos internos, como sera o caso do diretorio `components`.
+
+### Typescript Project Reference
+
+Referencias de projeto Typescript e um tema nao muito usual, mas muito util, nao vou tentar explicar em detalhe o funcionamento, mas a ideia e que podemos ter projetos typescript, como a pasta `types`, em outros projetos que estao em outro diretorio raiz, como o projeto `auth`.
+
+Isso e muito poderoso para compartilhar codigo typescript (ou javascript, sim, isso funciona com os dois, mas nao vou entrar em detalhes nesse artigo...). E e o que vamos usar para compartilhar os tipos das mensagens entre os servicos.
+
+### Changesets
+
+Essa ferramenta e muito popular em projetos open source, vou deixar um trexo da documentacao oficial aqui:
+
+> O fluxo de alterações (changesets) foi projetado para ajudar quando as pessoas estão fazendo mudanças, desde o início até a publicação. Ele permite que os colaboradores declarem como suas alterações devem ser lançadas. Em seguida, automatizamos a atualização das versões dos pacotes, dos registros de alterações (changelogs) e a publicação de novas versões dos pacotes com base nas informações fornecidas.
+
+Ela sera extremamente util para orquestrar o versionameto do pacote `components` e automaticamente gerar versoes novas para todos os projetos que depedem dela quando houverem mudancas.
+
+### NX
+
+O NX, como o changesets, e uma ferramente bem popular, e tem varias funcionalidades, mas o que vamos utilizar principalmente sera o seu cache inteligente.

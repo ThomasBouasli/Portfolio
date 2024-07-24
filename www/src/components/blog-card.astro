@@ -1,0 +1,23 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+type Props = CollectionEntry<"blog">;
+const { title, description, tags } = Astro.props.data;
+const { slug, collection } = Astro.props;
+---
+
+<a href={`/${collection}/${slug}`} class="flex">
+    <div class="border border-zinc-700 rounded-md p-4 space-y-4 grow">
+        <h3 class="text-zinc-100">{title}</h3>
+        <p class="text-zinc-500">{description}</p>
+        <div class="flex space-x-2 mt-auto">
+            {
+                tags.map((tag) => (
+                    <span class="bg-zinc-700 text-zinc-100 px-2 py-1 rounded-md">
+                        {tag}
+                    </span>
+                ))
+            }
+        </div>
+    </div>
+</a>

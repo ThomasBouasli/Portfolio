@@ -15,9 +15,9 @@ const useRenderMermaid = (text: string) => {
   return svg;
 };
 
-mermaid.initialize({ startOnLoad: false, theme: "dark" });
-
 const Inside = ({ text }: MermaidProps) => {
+  mermaid.initialize({ startOnLoad: false, theme: "dark" });
+
   const svg = useRenderMermaid(text);
 
   return (
